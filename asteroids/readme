@@ -102,6 +102,7 @@ ast_hazardous and ast_safe
 		7 - Speed of asteroid
 		8 - Miss distance of asteroid
 		9 - asteroid id from nasa
+		10 - time of close approach in UTC
 
 	],
 	[
