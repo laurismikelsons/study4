@@ -101,6 +101,8 @@ ast_hazardous and ast_safe
 		6 - Date and time of close approach in local time zone;
 		7 - Speed of asteroid
 		8 - Miss distance of asteroid
+		9 - asteroid id from nasa
+
 	],
 	[
 
