@@ -1,5 +1,7 @@
+import tweepy
 import logging
 import logging.config
+import mysql.connector
 import requests
 import json
 import datetime
@@ -8,6 +10,7 @@ import yaml
 
 from datetime import datetime
 from configparser import ConfigParser
+from mysql.connector import Error
 
 # Loading logging configuration
 with open('./log_worker.yaml', 'r') as stream:
@@ -29,10 +32,20 @@ try:
 
 	nasa_api_key = config.get('nasa', 'api_key')
 	nasa_api_url = config.get('nasa', 'api_url')
+	twitter_consumer_key = config.get('twitter', 'consumer_key')
+	twitter_consumer_secret = config.get('twitter', 'consumer_secret')
+	twitter_access_token = config.get('twitter', 'access_token')
+	twitter_access_token_secret = config.get('twitter', 'access_token_secret')
+
+	twitter_
 except:
 	# !!!!!!!!!!!!!!!! Need to provide error for exception
 	logger.exception('')
 logger.info('DONE')
+
+# Authenticate to Twitter
+auth = tweepy.OAuthHandler(twitter_consumer_key, twitter_consumer_secret)
+auth.set_access_token(twitter_access_token, twitter_access_token_secret)
 
 # Getting todays date
 dt = datetime.now()
@@ -86,6 +99,7 @@ if r.status_code == 200:
 						if 'epoch_date_close_approach' and 'relative_velocity' and 'miss_distance' in val['close_approach_data'][0]:
 							tmp_ast_close_appr_ts = int(val['close_approach_data'][0]['epoch_date_close_approach']/1000)
 							tmp_ast_close_appr_dt_utc = datetime.utcfromtimestamp(tmp_ast_close_appr_ts).strftime('%Y-%m-%d %H:%M:%S')
+							tmp_ast_close_appr_t_utc = datetime.utcfromtimestamp(tmp_ast_close_appr_ts).strftime('%H:%M:%S')
 							tmp_ast_close_appr_dt = datetime.fromtimestamp(tmp_ast_close_appr_ts).strftime('%Y-%m-%d %H:%M:%S')
 
 							if 'kilometers_per_hour' in val['close_approach_data'][0]['relative_velocity']:
@@ -116,22 +130,33 @@ if r.status_code == 200:
 					
 					# Adding asteroid data to the corresponding array
 					if tmp_ast_hazardous == True:
-						ast_hazardous.append([tmp_ast_name, tmp_ast_nasa_jpl_url, tmp_ast_diam_min, tmp_ast_diam_max, tmp_ast_close_appr_ts, tmp_ast_close_appr_dt_utc, tmp_ast_close_appr_dt, tmp_ast_speed, tmp_ast_miss_dist])
+						ast_hazardous.append([tmp_ast_name, tmp_ast_nasa_jpl_url, tmp_ast_diam_min, tmp_ast_diam_max, tmp_ast_close_appr_ts, tmp_ast_close_appr_dt_utc, tmp_ast_close_appr_dt, tmp_ast_speed, tmp_ast_miss_dist, tmp_ast_close_appr_t_utc])
 					else:
-						ast_safe.append([tmp_ast_name, tmp_ast_nasa_jpl_url, tmp_ast_diam_min, tmp_ast_diam_max, tmp_ast_close_appr_ts, tmp_ast_close_appr_dt_utc, tmp_ast_close_appr_dt, tmp_ast_speed, tmp_ast_miss_dist])
+						ast_safe.append([tmp_ast_name, tmp_ast_nasa_jpl_url, tmp_ast_diam_min, tmp_ast_diam_max, tmp_ast_close_appr_ts, tmp_ast_close_appr_dt_utc, tmp_ast_close_appr_dt, tmp_ast_speed, tmp_ast_miss_dist, tmp_ast_close_appr_t_utc])
 
 		else:
 			logger.info("No asteroids are going to hit earth today")
 
 	logger.info("Hazardous asteorids: " + str(len(ast_hazardous)) + " | Safe asteroids: " + str(len(ast_safe)))
 
-	# Sorting array by time
-	ast_hazardous.sort(key = lambda x: x[4], reverse=False)
+	if len(ast_hazardous) > 0:
+		# Sorting array by time
+		ast_hazardous.sort(key = lambda x: x[4], reverse=False)
+		logger.info("Today's hazardous asteroid close passing earth times:")
 
-	logger.info("Today's possible apocalypse (asteroid impact on earth) times:")
-	for asteroid in ast_hazardous:
-		logger.info(str(asteroid[6]) + " " + str(asteroid[0]) + " " + " | more info: " + str(asteroid[1]))
+		tweet_data = "Today's hazardous asteroids:\n"
+		for asteroid in ast_hazardous:
+			logger.info(str(asteroid[6]) + " " + str(asteroid[0]) + " " + " | more info: " + str(asteroid[1]))
+			tweet_data = tweet_data + str(asteroid[9]) + " " + str(asteroid[0]) 
+	else:
+		tweet_data =  "No asteroids close passing earth today"
 
+	logger.info("Tweeting: " + tweet_data)
+	# Create API object
+	api = tweepy.API(auth)
+
+	# Create a tweet
+	api.update_status(tweet_data)
 
 	# Sorting array by passing distance
 	ast_hazardous.sort(key = lambda x: x[8], reverse=False)
@@ -139,3 +164,5 @@ if r.status_code == 200:
 
 else:
 	logger.error("Unable to get response from API. Response code: " + str(r.status_code) + " | content: " + str(r.text))
+
+

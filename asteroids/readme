@@ -1,10 +1,10 @@
 worker.py
-App for requesting asteroid data that could possibly hit the earth.
+App for requesting asteroid data that could possibly hit the earth at the day of execution of application.
 The output will be a timetable of possible apocalypse times and the closest asteroid flying by.
 
-worker_2_db.py
-
-Same as worker.py + storing each days asteroids data to db. Requires migrate_db.py to be executed before run to create the appropriate data structure.
+naked.py -> App without db, logging, config reading, comments. You can use this as a template for your own project.
+workerp.py -> App reading nasa api, logging data.
+worker_2_db.py -> App for reading nasa api, logging, data, writing values to db.
 
 migrate_db.py
 App that will do the DB migrations stored in the migrations folder.
@@ -13,7 +13,7 @@ App that will do the DB migrations stored in the migrations folder.
 Preparing the environment:
 Install mysql/mariadb server
 
-sudo apt install mariadb
+sudo apt install mariadb-server
 sudo mysql_secure_installation
 
 >>
@@ -102,6 +102,7 @@ ast_hazardous and ast_safe
 		7 - Speed of asteroid
 		8 - Miss distance of asteroid
 		9 - asteroid id from nasa
+		10 - time of close approach in UTC
 
 	],
 	[
