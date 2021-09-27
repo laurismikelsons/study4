@@ -13,7 +13,7 @@ App that will do the DB migrations stored in the migrations folder.
 Preparing the environment:
 Install mysql/mariadb server
 
-sudo apt install mariadb
+sudo apt install mariadb-server
 sudo mysql_secure_installation
 
 >>
