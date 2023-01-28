@@ -8,39 +8,46 @@ from datetime import datetime
 print('Asteroid processing service')
 
 # Initiating and reading config values
-print('Loading configuration from file')
+# print('Loading configuration from file')
 
-# 
+# mainīgie kas satur nasa api adresi un individuālo atslēgu
 nasa_api_key = "???"
 nasa_api_url = "https://api.nasa.gov/neo/"
 
-# Getting todays date
+# Getting todays date, lai varētu priecīzi pieprasīt info no NASA api galapunkta
 dt = datetime.now()
 request_date = str(dt.year) + "-" + str(dt.month).zfill(2) + "-" + str(dt.day).zfill(2)  
 print("Generated today's date: " + str(request_date))
 
 
 print("Request url: " + str(nasa_api_url + "rest/v1/feed?start_date=" + request_date + "&end_date=" + request_date + "&api_key=" + nasa_api_key))
+# tiek veikts pieprasījums NASA api
 r = requests.get(nasa_api_url + "rest/v1/feed?start_date=" + request_date + "&end_date=" + request_date + "&api_key=" + nasa_api_key)
 
 print("Response status code: " + str(r.status_code))
 print("Response headers: " + str(r.headers))
 print("Response content: " + str(r.text))
 
+# ja izdodas izveidot savienojumu https atgirež kodu 200 - var turpināt programmas darbu
 if r.status_code == 200:
 
+	#iegūtie json formāta dati tiek pārsieti
 	json_data = json.loads(r.text)
 
+	# masīvu mainīgie, kas saturēs asteroīdu objektus
 	ast_safe = []
 	ast_hazardous = []
 
+	#pārbauda vai ir "element_count" objekts
 	if 'element_count' in json_data:
 		ast_count = int(json_data['element_count'])
 		print("Asteroid count today: " + str(ast_count))
 
+		# ja šo elementu daudzums lielāks par 0 tad turpina
 		if ast_count > 0:
 			for val in json_data['near_earth_objects'][request_date]:
 				if 'name' and 'nasa_jpl_url' and 'estimated_diameter' and 'is_potentially_hazardous_asteroid' and 'close_approach_data' in val:
+					#mainīgie kas saturēs asteroīdu objektu vērtības
 					tmp_ast_name = val['name']
 					tmp_ast_nasa_jpl_url = val['nasa_jpl_url']
 					if 'kilometers' in val['estimated_diameter']:
@@ -100,13 +107,14 @@ if r.status_code == 200:
 	print("Hazardous asteorids: " + str(len(ast_hazardous)) + " | Safe asteroids: " + str(len(ast_safe)))
 
 	if len(ast_hazardous) > 0:
-
+		# kārto asteroīdus pēc laika, kad pietuvosies
 		ast_hazardous.sort(key = lambda x: x[4], reverse=False)
 
 		print("Today's possible apocalypse (asteroid impact on earth) times:")
 		for asteroid in ast_hazardous:
 			print(str(asteroid[6]) + " " + str(asteroid[0]) + " " + " | more info: " + str(asteroid[1]))
-
+		
+		#kārto pēc attāluma kādā palidos garām zemei, atgriež to kas būs tuvākais
 		ast_hazardous.sort(key = lambda x: x[8], reverse=False)
 		print("Closest passing distance is for: " + str(ast_hazardous[0][0]) + " at: " + str(int(ast_hazardous[0][8])) + " km | more info: " + str(ast_hazardous[0][1]))
 	else:
