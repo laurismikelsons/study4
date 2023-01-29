@@ -1,7 +1,5 @@
 def sum(a, b):
-	sum = int
-	sum = a + b
-	return sum
+	return a + b
 
 if __name__ == "__main__":
 
