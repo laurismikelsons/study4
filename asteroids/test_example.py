@@ -1,15 +1,7 @@
-from naked import *
+import testing_target
+import unittest
 
-print("Naked test")
-print("----------")
-print("Testing function: \"sort_ast_by_pass_dist\"")
-# Testing passing empty asteroids list
-print("Empty asteroids list [] -->")
-assert sort_ast_by_pass_dist([]) == []
-print("OK")
-print("----------")
-
-
-
-print("Asteroid worker test -> ALL OK")
-print("----------------------------------------")
+class TestTestingTarget(unittest.TestCase):
+  def test_sum (self):
+    result = testing_target.sum(10,5)
+    self.assertEqual(result, 15)
